@@ -74,8 +74,7 @@ export const crearVenta = async (input, addressAccount) => {
 };
 
 export const getValor = async () => {
-  const valor = await ventaContract.valor();
-  return valor.toNumber();
+  return await ventaContract.valor();
 };
 
 export const iniciarVenta = async (addressAccount, input) => {

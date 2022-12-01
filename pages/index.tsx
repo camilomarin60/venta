@@ -26,7 +26,6 @@ import {
   cancelarCompra,
   confirmarRecibo,
 } from "../src/funcs";
-import { delay } from "framer-motion";
 
 export default function Home() {
   const [input, setInput] = React.useState<number>(0);
@@ -51,6 +50,7 @@ export default function Home() {
     }
     try {
       const v = await crearVenta(input, addressAccount);
+      console.log(v);
       setVenta(true);
       setOwnerAddress(addressAccount);
       localStorage.setItem("ownerAddress", addressAccount);
@@ -62,12 +62,15 @@ export default function Home() {
   };
 
   const iniciarVentaAction = async () => {
-    const balance = await getBalance(addressAccount);
-    const valor: number = await getValor();
-    if (balance < input) {
+    const balance: number = Number(await getBalance(addressAccount));
+    const valor = await getValor();
+    const oferta = Number(input);
+    console.log(oferta);
+    console.log(valor);
+    if (balance < oferta) {
       setTextArea("No tienes el balance suficiente");
       return;
-    } else if (input < valor * 2) {
+    } else if (oferta < Number(valor * 2)) {
       setTextArea("La oferta es menor al doble de valor del inmueble");
       return;
     } else {
@@ -75,7 +78,7 @@ export default function Home() {
     }
 
     try {
-      const venta = await iniciarVenta(addressAccount, input);
+      const venta = await iniciarVenta(addressAccount, oferta);
       localStorage.setItem("estadoVenta", JSON.stringify(true));
       localStorage.setItem("venta", JSON.stringify(true));
       console.log(venta);
@@ -88,13 +91,13 @@ export default function Home() {
   };
 
   const confirmarCompraAction = async () => {
-    const balance = await getBalance(addressAccount);
+    const balance: number = Number(await getBalance(addressAccount));
+    const oferta = Number(input);
     const valor: number = await getValor();
-
-    if (balance < input) {
+    if (oferta > balance) {
       setTextArea("No tienes el balance suficiente");
       return;
-    } else if (input < valor * 2) {
+    } else if (oferta < valor * 2) {
       setTextArea("La oferta es menor al doble de valor del inmueble");
       return;
     } else if (!estadoVenta) {
@@ -105,7 +108,7 @@ export default function Home() {
     }
 
     try {
-      const compra = await confirmarCompra(addressAccount, input);
+      const compra = await confirmarCompra(addressAccount, oferta);
       console.log(compra);
       localStorage.setItem("compradorAddress", addressAccount);
       setCompradrorAddress(addressAccount);
@@ -116,9 +119,8 @@ export default function Home() {
   };
 
   const cancelarCompraAction = async () => {
-    console.log(addressAccount != ownerAddress);
     if (addressAccount != compradorAddress && addressAccount != ownerAddress) {
-      setTextArea("No eres el vendedor ni el comprador.");
+      setTextArea("No eres el comprador.");
       return;
     } else if (!estadoVenta) {
       setTextArea("La venta está inactiva");
@@ -130,8 +132,8 @@ export default function Home() {
     try {
       await cancelarCompra(addressAccount);
       setEstadoVenta(false);
-      localStorage.clear();
-      window.location.reload();
+      localStorage.removeItem("compradorAddress");
+      setCompradrorAddress(null);
     } catch (e: any) {
       console.log(e);
     }
@@ -161,7 +163,7 @@ export default function Home() {
   };
 
   const crearContrato = async () => {
-    load().then((e) => {
+    load().then(async (e) => {
       setAddresAccount(e.addressAcount);
       setContract(e.contract ? true : false);
       localStorage.setItem("contract", JSON.stringify(true));
@@ -258,7 +260,7 @@ export default function Home() {
                     iniciar venta
                   </Button>
                 )}
-                {venta && estadoVenta && (
+                {venta && estadoVenta && compradorAddress == addressAccount && (
                   <Button
                     onClick={cancelarCompraAction}
                     bg="green"

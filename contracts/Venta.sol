@@ -45,7 +45,7 @@ contract Venta{
 
     function confirmaRecibo() payable public{
         require(estadoVenta == true, "Venta inactiva");
-        comprador.transfer(valor/2);
+        comprador.transfer(valor);
         vendedor.transfer(valor*3);
         estadoVenta = false;
     }
@@ -54,8 +54,6 @@ contract Venta{
         require(msg.sender == comprador || msg.sender == vendedor, "No eres el comprador ni el vendedor, no puedes confirmar el recibo");
         require(estadoVenta == true, "Venta inactiva");
         comprador.transfer(valor*2);
-        vendedor.transfer(valor*2);
-        estadoVenta= false;
     }
 
 }
